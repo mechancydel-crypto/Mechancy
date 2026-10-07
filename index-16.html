@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random Challenge Generator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f6f7fb;--card:#fff;--text:#171923;--muted:#737887;--line:#e7e9ef;--accent:#6c5ce7;--accent2:#8b7cf6;--good:#18a56b;--bad:#e45757}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+button{font:inherit;cursor:pointer;border:0}
+.app{max-width:1100px;margin:auto;padding:20px 18px 90px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.logo{font-weight:900;letter-spacing:-.5px}.logo span{color:var(--accent)}
+.coins{display:flex;gap:16px;font-weight:800}
+.hero{background:linear-gradient(135deg,#171923,#29233d);color:white;border-radius:28px;padding:34px 28px;margin-bottom:20px;box-shadow:0 15px 35px #25203b20}
+.hello{color:#c9c5dc;font-weight:700;margin-bottom:8px}
+.hero h1{font-size:clamp(30px,6vw,58px);line-height:.98;letter-spacing:-2px;max-width:650px}
+.primary{margin-top:24px;background:white;color:#171923;padding:14px 20px;border-radius:14px;font-weight:900;box-shadow:0 8px 20px #0002}
+.primary:hover{transform:translateY(-1px)}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 5px 20px #11111108}
+.card h2{font-size:18px;margin-bottom:18px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{padding:14px;background:#f8f8fb;border-radius:15px}.stat b{display:block;font-size:23px;margin-top:5px}.stat small{color:var(--muted)}
+.streak{margin-top:14px;padding:15px;border-radius:16px;background:#fff7e6}.streak b{font-size:24px}.locks{display:flex;gap:9px;margin-top:12px;color:#a0a2ab}
+.skills{grid-column:1/-1}.skill-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.skill{padding:17px;border:1px solid var(--line);border-radius:17px;background:#fff;text-align:left}.skill:hover{border-color:var(--accent);transform:translateY(-2px)}.icon{font-size:26px}.skill b{display:block;margin-top:10px}.skill small{color:var(--muted)}
+.activity{grid-column:1/-1}.empty{color:var(--muted);padding:10px 0}
+.challenge-wrap{display:none;margin-bottom:20px}.challenge{max-width:760px;margin:auto}.question{font-size:25px;font-weight:900;line-height:1.25;margin:10px 0 20px}.meta{display:flex;gap:8px;flex-wrap:wrap}.pill{background:#f0efff;color:#5849cf;padding:7px 10px;border-radius:99px;font-size:12px;font-weight:800}
+.options{display:grid;gap:10px}.option{padding:14px 16px;border:1px solid var(--line);background:#fff;border-radius:13px;text-align:left;font-weight:700}.option:hover{border-color:var(--accent);background:#faf9ff}.option.correct{border-color:var(--good);background:#eafaf3}.option.wrong{border-color:var(--bad);background:#fff0f0}
+.result{margin-top:14px;font-weight:800}.next{display:none;margin-top:15px;background:var(--accent);color:white;padding:12px 18px;border-radius:12px;font-weight:800}
+.history{display:none}.history-row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line)}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:center;gap:30px;padding:12px;z-index:5}nav button{background:none;color:#686b76;font-weight:700;font-size:13px}nav button.active{color:var(--accent)}
+.modal{display:none;position:fixed;inset:0;background:#0007;z-index:10;align-items:center;justify-content:center;padding:18px}.modal-box{background:white;border-radius:24px;padding:24px;max-width:600px;width:100%;max-height:90vh;overflow:auto}.close{float:right;background:#f1f1f5;border-radius:50%;width:34px;height:34px}.level-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}.level{padding:12px;border-radius:12px;background:#f3f2ff;color:#5948cf;font-weight:800}.subcats{display:flex;gap:8px;flex-wrap:wrap}.subcats button{padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:white}.subcats button.selected{background:var(--accent);color:white}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.skill-grid{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:40px}.level-grid{grid-template-columns:repeat(3,1fr)}nav{gap:18px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="logo">🧩 RANDOM<span>CHALLENGE</span></div>
+    <div class="coins">💰 <span id="pointsTop">0</span> 🔥 <span id="streakTop">0</span></div>
+  </header>
+
+  <main id="home">
+    <section class="hero">
+      <div class="hello">Hi, Challenger</div>
+      <h1>CHALLENGE YOURSELF.<br>BUILD YOUR SCORE.</h1>
+      <button class="primary" onclick="generateChallenge()">🎲 Generate a challenge</button>
+    </section>
+
+    <div id="challengeWrap" class="challenge-wrap">
+      <section class="card challenge">
+        <div class="meta"><span class="pill" id="challengeCategory"></span><span class="pill" id="challengeLevel"></span><span class="pill" id="challengeSub"></span></div>
+        <div class="question" id="question"></div>
+        <div class="options" id="options"></div>
+        <div class="result" id="result"></div>
+        <button class="next" id="nextBtn" onclick="generateChallenge()">Next challenge →</button>
+      </section>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>⭐ Daily score</h2>
+        <div class="stats">
+          <div class="stat"><small>Points</small><b id="points">0 pts</b></div>
+          <div class="stat"><small>Correct</small><b id="correct">0</b></div>
+          <div class="stat"><small>Wrong</small><b id="wrong">0</b></div>
+          <div class="stat"><small>Accuracy</small><b id="accuracy">—</b></div>
+        </div>
+      </section>
+      <section class="card">
+        <h2>🔥 Daily streak</h2>
+        <div class="streak"><b id="streak">0 days</b><p id="streakText">3 more to the 3-day milestone</p><div class="locks">🔒 3d 🔒 7d 🔒 14d 🔒 30d</div></div>
+      </section>
+
+      <section class="card skills">
+        <h2>Skill categories</h2>
+        <div class="skill-grid">
+          <button class="skill" onclick="openSkills('Coding')"><span class="icon">💻</span><b>Coding</b><small id="CodingPct">0%</small></button>
+          <button class="skill" onclick="openSkills('Brain & Logic')"><span class="icon">🧠</span><b>Brain & Logic</b><small id="BrainPct">0%</small></button>
+          <button class="skill" onclick="openSkills('Communication')"><span class="icon">💬</span><b>Communication</b><small id="CommunicationPct">0%</small></button>
+          <button class="skill" onclick="openSkills('Fitness & Wellness')"><span class="icon">🏃</span><b>Fitness & Wellness</b><small id="FitnessPct">0%</small></button>
+          <button class="skill" onclick="openSkills('General Knowledge')"><span class="icon">🌍</span><b>General Knowledge</b><small id="GeneralPct">0%</small></button>
+        </div>
+      </section>
+
+      <section class="card activity">
+        <h2>Recent activity</h2><div id="activity" class="empty">No challenges yet — hit the dice to start!</div>
+      </section>
+    </div>
+  </main>
+
+  <section id="history" class="history">
+    <div class="card"><h2>📅 Challenge History</h2><div id="historyList" class="empty">No history yet.</div></div>
+  </section>
+
+  <section id="profile" class="history">
+    <div class="card"><h2>👤 Profile</h2><p style="color:var(--muted)">Your challenge progress is saved automatically in this browser.</p><br><button class="primary" onclick="resetAll()">Reset progress</button></div>
+  </section>
+</div>
+
+<nav>
+<button class="active" onclick="showPage('home',this)">🏠 Home</button>
+<button onclick="showPage('home',this);openSkills('all')">🧩 Skills</button>
+<button onclick="generateChallenge()">🎲 Random</button>
+<button onclick="showPage('history',this)">📅 History</button>
+<button onclick="showPage('profile',this)">👤 Profile</button>
+</nav>
+
+<div class="modal" id="skillModal">
+ <div class="modal-box">
+  <button class="close" onclick="closeSkills()">×</button>
+  <h2 id="modalTitle">Skills</h2>
+  <p style="color:var(--muted);margin-top:5px">Choose a level and subcategory.</p>
+  <div class="level-grid">
+   <button class="level" onclick="selectLevel(1)">Level 1</button><button class="level" onclick="selectLevel(2)">Level 2</button><button class="level" onclick="selectLevel(3)">Level 3</button><button class="level" onclick="selectLevel(4)">Level 4</button><button class="level" onclick="selectLevel(5)">Level 5</button>
+  </div>
+  <div id="subcats" class="subcats"></div>
+  <button class="primary" onclick="generateFromModal()">🎲 Generate challenge</button>
+ </div>
+</div>
+
+<script>
+const bank={
+Coding:{
+ subs:{Python:[
+  ["What keyword defines a function in Python?",["func","def","function","define"],1],
+  ["Which symbol starts a comment in Python?",["//","#","<!--","/*"],1],
+  ["What is the output of 2 + 3 * 2?",["10","8","7","12"],2],
+  ["Which type stores True or False?",["str","int","bool","list"],2],
+  ["Which method adds an item to a Python list?",["add()","push()","append()","insertEnd()"],3]],
+ HTML:[
+  ["Which tag creates a paragraph?",["<p>","<h1>","<br>","<div>"],0],
+  ["Which tag creates a hyperlink?",["<link>","<a>","<href>","<url>"],1],
+  ["Which attribute gives an image its source?",["href","src","alt","link"],1],
+  ["Which tag is used for a table row?",["<td>","<th>","<tr>","<row>"],2],
+  ["Which element contains the page title?",["<body>","<head>","<title>","<main>"],2]],
+ JavaScript:[
+  ["Which keyword declares a variable that can be reassigned?",["const","let","fixed","varname"],1],
+  ["Which method writes to the browser console?",["print()","console.log()","write.log()","debug()"],1],
+  ["Which symbol is used for strict equality?",["=","==","===","!="],2],
+  ["How do you select an element by id?",["getId()","queryId()","getElementById()","selectId()"],2]],
+ CSS:[
+  ["Which property changes text color?",["font-color","color","text-color","foreground"],1],
+  ["Which property changes background color?",["background-color","bg","color-bg","background-style"],0],
+  ["Which CSS layout is useful for one-dimensional layouts?",["Float","Flexbox","Table","Position"],1]]}},
+"Brain & Logic":{
+ subs:{Puzzles:[
+  ["What comes next: 2, 4, 8, 16, ?",["20","24","30","32"],3],
+  ["If all cats are animals and Tom is a cat, Tom is a...?",["plant","animal","robot","bird"],1]],
+ Memory:[
+  ["Which number is different: 2, 4, 6, 9?",["2","4","6","9"],3]],
+ Math:[
+  ["What is 15% of 100?",["5","10","15","20"],2],
+  ["What is 12 × 8?",["86","96","108","88"],1]]}},
+Communication:{
+ subs:{Speaking:[
+  ["Which is a polite request?",["Give me water.","Water now.","Could you please help me?","Help!"],2],
+  ["Choose the correct sentence.",["He go to college.","He goes to college.","He going college.","He gone college."],1]],
+ Grammar:[
+  ["Choose the correct form: I ___ a student.",["am","is","are","be"],0],
+  ["Past tense of 'go' is...",["goed","goes","went","gone"],2]],
+ Vocabulary:[
+  ["Opposite of 'difficult' is...",["hard","easy","strong","slow"],1]]}},
+"Fitness & Wellness":{
+ subs:{Wellness:[
+  ["Which habit supports good health?",["Regular sleep","Skipping all meals","Never drinking water","No rest"],0],
+  ["Which is important before exercise?",["Warm-up","No water","No rest","Skipping movement"],0]],
+ Movement:[
+  ["A warm-up helps prepare your...",["body for activity","phone","books","computer"],0]]}},
+"General Knowledge":{
+ subs:{Science:[
+  ["Which planet is known as the Red Planet?",["Earth","Mars","Jupiter","Venus"],1],
+  ["What gas do plants use in photosynthesis?",["Oxygen","Nitrogen","Carbon dioxide","Helium"],2]],
+ Geography:[
+  ["What is the capital of India?",["Mumbai","New Delhi","Chennai","Kolkata"],1]],
+ Technology:[
+  ["What does CPU stand for?",["Central Processing Unit","Computer Personal Unit","Control Program Utility","Central Power User"],0]]}}
+};
+
+let state=JSON.parse(localStorage.getItem("challengeState")||"null")||{points:0,correct:0,wrong:0,streak:0,history:[],lastDate:"",doneBy:{}};
+let current=null, selectedCategory="Coding",selectedLevel=1,selectedSub="Python";
+
+function allQuestions(cat){
+ const groups=bank[cat].subs; let out=[];
+ Object.entries(groups).forEach(([sub,qs])=>qs.forEach(q=>out.push({q:q[0],opts:q[1],ans:q[2],sub})));
+ return out;
+}
+function questions(cat,sub,level){
+ let qs=(sub==="all"?allQuestions(cat):bank[cat]?.subs[sub]||[]);
+ return qs.map(q=>({q:q[0],opts:q[1],ans:q[2],sub:sub==="all"?"Mixed":sub}));
+}
+function randomItem(a){return a[Math.floor(Math.random()*a.length)]}
+function generateChallenge(cat=selectedCategory,sub=selectedSub,level=selectedLevel){
+ selectedCategory=cat==="all"?randomItem(Object.keys(bank)):cat;
+ let subs=Object.keys(bank[selectedCategory].subs);
+ selectedSub=sub==="all"||!bank[selectedCategory].subs[sub]?randomItem(subs):sub;
+ let qs=questions(selectedCategory,selectedSub,level);
+ current={...randomItem(qs),category:selectedCategory,level};
+ document.getElementById("challengeWrap").style.display="block";
+ document.getElementById("challengeCategory").textContent=selectedCategory;
+ document.getElementById("challengeLevel").textContent="Level "+level;
+ document.getElementById("challengeSub").textContent=current.sub;
+ document.getElementById("question").textContent=current.q;
+ document.getElementById("result").textContent="";
+ document.getElementById("nextBtn").style.display="none";
+ const box=document.getElementById("options");box.innerHTML="";
+ current.opts.forEach((o,i)=>{let b=document.createElement("button");b.className="option";b.textContent=o;b.onclick=()=>answer(i,b);box.appendChild(b)});
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function answer(i,btn){
+ document.querySelectorAll(".option").forEach(b=>b.disabled=true);
+ let ok=i===current.ans;
+ document.querySelectorAll(".option")[current.ans].classList.add("correct");
+ if(!ok)btn.classList.add("wrong");
+ if(ok){state.correct++;state.points+=current.level*10;state.streak=Math.max(1,state.streak+1);document.getElementById("result").textContent="✅ Correct! +"+(current.level*10)+" points";}
+ else{state.wrong++;state.streak=0;document.getElementById("result").textContent="❌ Not quite. Keep learning!";}
+ state.history.unshift({q:current.q,category:current.category,sub:current.sub,ok,date:new Date().toLocaleString()});
+ state.history=state.history.slice(0,30);
+ save();render();
+ document.getElementById("nextBtn").style.display="inline-block";
+}
+function render(){
+ let total=state.correct+state.wrong;
+ document.getElementById("points").textContent=state.points+" pts";document.getElementById("pointsTop").textContent=state.points;
+ document.getElementById("correct").textContent=state.correct;document.getElementById("wrong").textContent=state.wrong;
+ document.getElementById("accuracy").textContent=total?Math.round(state.correct/total*100)+"%":"—";
+ document.getElementById("streak").textContent=state.streak+" days";document.getElementById("streakTop").textContent=state.streak;
+ document.getElementById("streakText").textContent=state.streak>=3?"🎉 3-day milestone reached!":(3-state.streak)+" more to the 3-day milestone";
+ const act=document.getElementById("activity");
+ if(state.history.length)act.innerHTML=state.history.slice(0,5).map(x=>`<div class="history-row"><span>${x.ok?"✅":"❌"} ${x.category} — ${x.q}</span><b>${x.ok?"+"+10:"0"}</b></div>`).join("");
+ renderHistory();
+}
+function renderHistory(){
+ let el=document.getElementById("historyList");
+ el.innerHTML=state.history.length?state.history.map(x=>`<div class="history-row"><span>${x.ok?"✅":"❌"} ${x.category} / ${x.sub}<br><small>${x.q}</small></span><small>${x.date}</small></div>`).join(""):"No history yet.";
+}
+function save(){localStorage.setItem("challengeState",JSON.stringify(state))}
+function showPage(id,btn){
+ document.getElementById("home").style.display=id==="home"?"block":"none";
+ document.getElementById("history").style.display=id==="history"?"block":"none";
+ document.getElementById("profile").style.display=id==="profile"?"block":"none";
+ document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));btn.classList.add("active");
+}
+function openSkills(cat){
+ selectedCategory=cat==="all"?Object.keys(bank)[0]:cat;
+ document.getElementById("modalTitle").textContent=cat==="all"?"Choose a skill":cat;
+ fillSubcats();
+ document.getElementById("skillModal").style.display="flex";
+}
+function fillSubcats(){
+ let subs=Object.keys(bank[selectedCategory].subs),el=document.getElementById("subcats");el.innerHTML="";
+ subs.forEach((s,i)=>{let b=document.createElement("button");b.textContent=s;b.className=(s===selectedSub?"selected":"");b.onclick=()=>{selectedSub=s;document.querySelectorAll("#subcats button").forEach(x=>x.classList.remove("selected"));b.classList.add("selected")};el.appendChild(b)});
+}
+function selectLevel(n){selectedLevel=n;document.querySelectorAll(".level").forEach((b,i)=>b.style.outline=i===n-1?"3px solid var(--accent)":"none")}
+function generateFromModal(){closeSkills();generateChallenge(selectedCategory,selectedSub,selectedLevel)}
+function closeSkills(){document.getElementById("skillModal").style.display="none"}
+function resetAll(){if(confirm("Reset all progress?")){localStorage.removeItem("challengeState");location.reload()}}
+render();
+</script>
+</body>
+</html>
